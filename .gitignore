@@ -44,7 +44,8 @@ hs_err_pid*.log
 .DS_Store
 Thumbs.db
 .env
-.env.* 
+.env.*
+src/main/resources/application.properties
 **/application-*.properties
 **/application-*.yml
 .metadata
