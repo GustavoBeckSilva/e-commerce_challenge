@@ -38,6 +38,12 @@ public class Product {
     @Column(nullable = false, precision = 19, scale = 2)
     @ToString.Include
     private BigDecimal price;
+	
+	@NotNull
+    @PositiveOrZero
+    @Column(name = "cost_price", nullable = false, precision = 19, scale = 2)
+    @ToString.Include
+	private BigDecimal costPrice;
     
 	@NotNull
     @Min(0)
