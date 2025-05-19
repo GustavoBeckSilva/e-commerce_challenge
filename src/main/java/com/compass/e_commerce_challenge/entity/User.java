@@ -55,9 +55,12 @@ public class User {
 	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
 	private List<PasswordResetToken> resetTokens;
 	
-	@Column(name = "role", nullable = false)
-	@ElementCollection
-	@CollectionTable
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+            name = "tb_user_roles",
+            joinColumns = @JoinColumn(name = "user_id")
+        )
+    @Column(name = "role", nullable = false)
 	@Enumerated(EnumType.STRING)
 	@Builder.Default
 	@ToString.Include
