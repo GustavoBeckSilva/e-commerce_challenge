@@ -8,9 +8,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.compass.e_commerce_challenge.dto.auth.ForgotPasswordRequest;
 import com.compass.e_commerce_challenge.dto.auth.JwtResponse;
 import com.compass.e_commerce_challenge.dto.auth.LoginRequest;
 import com.compass.e_commerce_challenge.dto.auth.RegisterRequest;
+import com.compass.e_commerce_challenge.dto.auth.ResetPasswordRequest;
 import com.compass.e_commerce_challenge.dto.shared.ApiResponse;
 import com.compass.e_commerce_challenge.service.AuthService;
 
@@ -34,4 +36,19 @@ public class AuthController {
         JwtResponse jwtResponse = authService.authenticate(request);
         return ResponseEntity.ok(jwtResponse);
     }
+        
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse<String>> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+        ApiResponse<String> response = authService.forgotPassword(request);
+        return ResponseEntity.ok(response);
+    }
+    
+	@PostMapping("/reset-password")
+	public ResponseEntity<ApiResponse<?>> resetPassword(@RequestBody ResetPasswordRequest request) {
+        ApiResponse<?> response = authService.resetPassword(request);
+        return ResponseEntity.status(response.getSuccess() ? HttpStatus.OK : HttpStatus.BAD_REQUEST)
+                             .body(response);
+    }
+    
+    
 }

@@ -2,6 +2,7 @@ package com.compass.e_commerce_challenge.service;
 
 import java.time.LocalDateTime;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,23 +13,32 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.compass.e_commerce_challenge.dto.auth.ForgotPasswordRequest;
 import com.compass.e_commerce_challenge.dto.auth.JwtResponse;
 import com.compass.e_commerce_challenge.dto.auth.LoginRequest;
 import com.compass.e_commerce_challenge.dto.auth.RegisterRequest;
+import com.compass.e_commerce_challenge.dto.auth.ResetPasswordRequest;
 import com.compass.e_commerce_challenge.dto.shared.ApiResponse;
 import com.compass.e_commerce_challenge.entity.Cart;
+import com.compass.e_commerce_challenge.entity.PasswordResetToken;
 import com.compass.e_commerce_challenge.entity.User;
 import com.compass.e_commerce_challenge.entity.UserRoles;
 import com.compass.e_commerce_challenge.repository.CartRepository;
+import com.compass.e_commerce_challenge.repository.PasswordResetTokenRepository;
 import com.compass.e_commerce_challenge.repository.UserRepository;
 import com.compass.e_commerce_challenge.util.security.JwtUtils;
 
 @Service
 public class AuthServiceImpl implements AuthService {
- 	@Autowired
+ 	
+	@Autowired
     private UserRepository userRepository;
 
+	@Autowired
+    private PasswordResetTokenRepository tokenRepository;
+	
     @Autowired
     private CartRepository cartRepository;
 
@@ -91,5 +101,44 @@ public class AuthServiceImpl implements AuthService {
 
         	return new JwtResponse(token, "Bearer", expiry, roles);
 	    }
-	}
+    
+    @Override
+    @Transactional
+    public ApiResponse<String> forgotPassword(ForgotPasswordRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new IllegalArgumentException("Email não encontrado"));
+
+        tokenRepository.deleteByExpiryDateBefore(LocalDateTime.now());
+        String token = UUID.randomUUID().toString();
+        LocalDateTime expiry = LocalDateTime.now().plusHours(1);
+        PasswordResetToken prt = PasswordResetToken.builder()
+                .token(token)
+                .expiryDate(expiry)
+                .user(user)
+                .build();
+        tokenRepository.save(prt);
+
+        return ApiResponse.success("Password reset token generated", token);
+    }
+    
+    @Override
+    @Transactional
+    public ApiResponse<?> resetPassword(ResetPasswordRequest request) {
+        PasswordResetToken prt = tokenRepository.findByToken(request.getToken())
+                .orElseThrow(() -> new IllegalArgumentException("Token inválido"));
+        
+        if (prt.isExpired()) {
+            tokenRepository.delete(prt);
+            return ApiResponse.error("Token expirado");
+        }
+        
+        User user = prt.getUser();
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+        tokenRepository.delete(prt);
+        return ApiResponse.success("Senha atualizada com sucesso");
+   
+    }
+    
+}
 
