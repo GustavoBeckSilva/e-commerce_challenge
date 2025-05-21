@@ -26,8 +26,10 @@ import com.compass.e_commerce_challenge.entity.CartItem;
 import com.compass.e_commerce_challenge.entity.Category;
 import com.compass.e_commerce_challenge.entity.Order;
 import com.compass.e_commerce_challenge.entity.OrderItem;
+import com.compass.e_commerce_challenge.entity.OrderStatus;
 import com.compass.e_commerce_challenge.entity.Product;
 import com.compass.e_commerce_challenge.entity.User;
+import com.compass.e_commerce_challenge.entity.UserRoles;
 
 @Configuration
 public class ModelMapperConfig {
@@ -38,7 +40,13 @@ public class ModelMapperConfig {
 
         mapper.getConfiguration()
               .setMatchingStrategy(MatchingStrategies.STRICT)
-              .setPropertyCondition(Conditions.isNotNull());
+              .setPropertyCondition(Conditions.isNotNull())
+              .setAmbiguityIgnored(true);
+
+        mapper.createTypeMap(UserRoles.class, String.class)
+              .setConverter(ctx -> ctx.getSource() == null ? null : ctx.getSource().name());
+        mapper.createTypeMap(OrderStatus.class, String.class)
+              .setConverter(ctx -> ctx.getSource() == null ? null : ctx.getSource().name());
 
         mapper.addMappings(userToUserResponseMap());
         mapper.addMappings(updateUserRequestToUserMap());
@@ -58,7 +66,10 @@ public class ModelMapperConfig {
         return new PropertyMap<>() {
             @Override
             protected void configure() {
-                map(source.getRoles(), destination.getRoles());
+                using(ctx -> ((Set<?>) ctx.getSource()).stream()
+                        .map(Object::toString)
+                        .collect(Collectors.toSet()))
+                  .map(source.getRoles(), destination.getRoles());
             }
         };
     }
@@ -105,7 +116,6 @@ public class ModelMapperConfig {
         return new PropertyMap<>() {
             @Override
             protected void configure() {
-                // No custom mapping necessary for now
             }
         };
     }
@@ -127,6 +137,7 @@ public class ModelMapperConfig {
         return new PropertyMap<>() {
             @Override
             protected void configure() {
+                // Campos mapeados automaticamente
             }
         };
     }
@@ -149,8 +160,9 @@ public class ModelMapperConfig {
         return new PropertyMap<>() {
             @Override
             protected void configure() {
-                map().setStatus(source.getStatus().name());
+                map(source.getStatus(), destination.getStatus());
             }
         };
     }
 }
+

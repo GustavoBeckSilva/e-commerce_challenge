@@ -1,10 +1,12 @@
 package com.compass.e_commerce_challenge.service;
 
-public class AuthService {
+import com.compass.e_commerce_challenge.dto.auth.JwtResponse;
+import com.compass.e_commerce_challenge.dto.auth.LoginRequest;
+import com.compass.e_commerce_challenge.dto.auth.RegisterRequest;
+import com.compass.e_commerce_challenge.dto.shared.ApiResponse;
 
-	// authenticate(), authenticateAdmin(),
-	// registerUser(), registerAdmin(), forgotPassword(), resetPassword()
-	
-	
-	
+
+public interface AuthService {
+    ApiResponse<?> register(RegisterRequest request);
+    JwtResponse authenticate(LoginRequest request);
 }

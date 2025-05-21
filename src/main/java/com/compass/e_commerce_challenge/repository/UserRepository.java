@@ -19,4 +19,7 @@ public interface UserRepository extends JpaRepository<User, Long>{
 	@Query("SELECT u FROM User u JOIN u.orders o GROUP BY u ORDER BY SUM(o.totalAmount) DESC")
 	Page<User> findTopCustomers(Pageable pageable);
 	
+    boolean existsByEmail(String email);
+    boolean existsByUsername(String username);
+	
 }

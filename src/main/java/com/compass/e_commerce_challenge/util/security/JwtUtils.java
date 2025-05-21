@@ -1,18 +1,23 @@
 package com.compass.e_commerce_challenge.util.security;
 
-import io.jsonwebtoken.*;
-import io.jsonwebtoken.security.Keys;
-import io.jsonwebtoken.io.Decoders;
-import jakarta.annotation.PostConstruct;
-import jakarta.servlet.http.HttpServletRequest;
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.Date;
+
+import javax.crypto.SecretKey;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
-import java.security.Key;
-import java.util.Date;
-
-import javax.crypto.SecretKey;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletRequest;
 
 @Component
 public class JwtUtils {
@@ -33,7 +38,7 @@ public class JwtUtils {
 
     @PostConstruct
     public void init() {
-        byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);
+    	byte[] keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
         this.key = Keys.hmacShaKeyFor(keyBytes);
     }
 
@@ -54,8 +59,9 @@ public class JwtUtils {
         return parseClaims(token).getSubject();
     }
 
-    public Date getExpirationDateFromToken(String token) {
-        return parseClaims(token).getExpiration();
+    public LocalDateTime getExpirationDateFromToken(String token) {
+    	Date date = parseClaims(token).getExpiration();
+        return date.toInstant().atZone(ZoneOffset.UTC).toLocalDateTime();
     }
 
     public boolean validateToken(String token) {
