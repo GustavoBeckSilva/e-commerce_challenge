@@ -52,12 +52,12 @@ public class AuthServiceImpl implements AuthService {
     private JwtUtils jwtUtils;
 
     @Override
-    public ApiResponse<?> register(RegisterRequest request) {
+    public ApiResponse<?> registerClient(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            return ApiResponse.error("Email já cadastrado");
+            return ApiResponse.error("Email already registered");
         }
         if (userRepository.existsByUsername(request.getUsername())) {
-            return ApiResponse.error("Username já em uso");
+            return ApiResponse.error("Username already in use");
         }
 
         User user = User.builder()
@@ -76,7 +76,33 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(user);
         cartRepository.save(cart);
 
-        return ApiResponse.success("Usuário registrado com sucesso");
+        return ApiResponse.success("User registered successfully");
+    }
+    
+    @Override
+    public ApiResponse<?> registerAdmin(RegisterRequest request) {
+        
+    	if (userRepository.existsByEmail(request.getEmail())) {
+            return ApiResponse.error("Email already in use");
+        }
+        
+    	if (userRepository.existsByUsername(request.getUsername())) {
+            return ApiResponse.error("Username already in use");
+        }
+    	
+        User admin = User.builder()
+                .username(request.getUsername())
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .address(request.getAddress())
+                .active(true)
+                .roles(Set.of(UserRoles.ROLE_ADMIN))
+                .build();
+        
+        userRepository.save(admin);
+        
+        return ApiResponse.success("Administrator created successfully");
+
     }
 
     @Override
@@ -87,13 +113,12 @@ public class AuthServiceImpl implements AuthService {
                     new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
             );
         } catch (BadCredentialsException ex) {
-            throw new BadCredentialsException("Credenciais inválidas");
+            throw new BadCredentialsException("Invalid credentials");
         }
 
         String token = jwtUtils.generateToken(authentication);
         LocalDateTime expiry = jwtUtils.getExpirationDateFromToken(token);
 
-        @SuppressWarnings("unchecked")
         Set<UserRoles> roles = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .map(UserRoles::valueOf)
@@ -106,7 +131,7 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public ApiResponse<String> forgotPassword(ForgotPasswordRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException("Email não encontrado"));
+                .orElseThrow(() -> new IllegalArgumentException("Email not found"));
 
         tokenRepository.deleteByExpiryDateBefore(LocalDateTime.now());
         String token = UUID.randomUUID().toString();
@@ -125,18 +150,18 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public ApiResponse<?> resetPassword(ResetPasswordRequest request) {
         PasswordResetToken prt = tokenRepository.findByToken(request.getToken())
-                .orElseThrow(() -> new IllegalArgumentException("Token inválido"));
+                .orElseThrow(() -> new IllegalArgumentException("Invalid token"));
         
         if (prt.isExpired()) {
             tokenRepository.delete(prt);
-            return ApiResponse.error("Token expirado");
+            return ApiResponse.error("Expired token");
         }
         
         User user = prt.getUser();
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
         tokenRepository.delete(prt);
-        return ApiResponse.success("Senha atualizada com sucesso");
+        return ApiResponse.success("Password updated successfully");
    
     }
     

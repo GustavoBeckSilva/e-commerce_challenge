@@ -11,18 +11,14 @@ import com.compass.e_commerce_challenge.dto.shared.ApiResponse;
 public interface AuthService {
     
 	// Shared
-	
     ApiResponse<String> forgotPassword(ForgotPasswordRequest request);
     ApiResponse<?> resetPassword(ResetPasswordRequest request);
-	JwtResponse authenticate(LoginRequest request); // Authenticate client and admin
+	JwtResponse authenticate(LoginRequest request); 
 	
 	// Client
-	ApiResponse<?> register(RegisterRequest request); // Register client
-
-
+	ApiResponse<?> registerClient(RegisterRequest request); 
 	
 	// Admin
-	
-    // register admin
-    
+    ApiResponse<?> registerAdmin(RegisterRequest request);
+	    
 }

@@ -1,9 +1,12 @@
 package com.compass.e_commerce_challenge.config;
 
+import static org.springframework.http.HttpMethod.POST;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -20,39 +23,59 @@ import com.compass.e_commerce_challenge.util.security.JwtAuthTokenFilter;
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfig {
-	 @Autowired
-	    private UserDetailsServiceImpl userDetailsService;
 
-	    @Autowired
-	    private AuthEntryPointJwt unauthorizedHandler;
+    @Autowired
+    private UserDetailsServiceImpl userDetailsService;
 
-	    @Autowired
-	    private JwtAuthTokenFilter jwtAuthTokenFilter;
+    @Autowired
+    private AuthEntryPointJwt unauthorizedHandler;
 
-	    @Bean
-	    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
-	        return authConfig.getAuthenticationManager();
-	    }
+    @Autowired
+    private JwtAuthTokenFilter jwtAuthTokenFilter;
 
-	    @Bean
-	    public PasswordEncoder passwordEncoder() {
-	        return new BCryptPasswordEncoder();
-	    }
+    
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
-	    @Bean
-	    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-	        http
-	            .csrf(csrf -> csrf.disable())
-	            .exceptionHandling(ex -> ex.authenticationEntryPoint(unauthorizedHandler))
-	            .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-	            .authorizeHttpRequests(auth -> auth
-	                .requestMatchers("/auth/register", "/auth/login", "/auth/forgot-password", "/auth/reset-password")
-	                .permitAll()
-	                .anyRequest().authenticated()
-	            );
+    @Bean
+    public DaoAuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider ap = new DaoAuthenticationProvider();
+        ap.setUserDetailsService(userDetailsService);
+        ap.setPasswordEncoder(passwordEncoder());
+        return ap;
+    }
 
-	        http.addFilterBefore(jwtAuthTokenFilter, UsernamePasswordAuthenticationFilter.class);
+    
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration cfg) throws Exception {
+        return cfg.getAuthenticationManager();
+    }
 
-	        return http.build();
-	    }
-	}
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+           
+            .authenticationProvider(authenticationProvider())
+            .csrf(csrf -> csrf.disable())
+            .exceptionHandling(ex -> ex.authenticationEntryPoint(unauthorizedHandler))
+            .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers(
+                    "/auth/register",
+                    "/auth/login",
+                    "/auth/forgot-password",
+                    "/auth/reset-password"
+                ).permitAll()
+        		.requestMatchers(POST, "/auth/register-admin").hasRole("ADMIN")
+                
+                .anyRequest().authenticated()
+            );
+
+        
+        http.addFilterBefore(jwtAuthTokenFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
+    }
+}

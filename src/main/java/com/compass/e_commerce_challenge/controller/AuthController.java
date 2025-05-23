@@ -3,6 +3,7 @@ package com.compass.e_commerce_challenge.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,12 +25,20 @@ public class AuthController {
     private AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<?>> register(@RequestBody RegisterRequest request) {
-        ApiResponse<?> response = authService.register(request);
+    public ResponseEntity<ApiResponse<?>> registerClient(@RequestBody RegisterRequest request) {
+        ApiResponse<?> response = authService.registerClient(request);
         return ResponseEntity
                 .status(response.getSuccess() ? HttpStatus.CREATED : HttpStatus.BAD_REQUEST)
                 .body(response);
     }
+    
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/register-admin")
+    public ResponseEntity<ApiResponse<?>> registerAdmin(@RequestBody RegisterRequest request) {
+        ApiResponse<?> response = authService.registerAdmin(request);
+        return ResponseEntity.status(response.getSuccess() ? 201 : 400).body(response);
+    }
+
 
     @PostMapping("/login")
     public ResponseEntity<JwtResponse> login(@RequestBody LoginRequest request) {
