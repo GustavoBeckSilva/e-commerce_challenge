@@ -14,7 +14,6 @@ public interface ProductRepository extends JpaRepository<Product, Long>{
 
 	Page<Product> findByActiveTrueAndStockQuantityGreaterThan(int minStock, Pageable pageable);
 	Page<Product> findAll(Pageable pageable);
-    Page<Product> findByCategoriesName(String categoryName, Pageable pageable);
     Page<Product> findByPriceBetween(BigDecimal min, BigDecimal max, Pageable pageable);
 
     @Query("SELECT p FROM Product p JOIN p.orderItems oi GROUP BY p ORDER BY SUM(oi.quantity) DESC")
@@ -22,7 +21,7 @@ public interface ProductRepository extends JpaRepository<Product, Long>{
 
     Page<Product> findByStockQuantityLessThan(int threshold, Pageable pageable);
     
-    boolean existsByOrderItemsProductId(Long productId);
+    boolean existsByOrderItems_Product_Id(Long productId);
 
 
 }

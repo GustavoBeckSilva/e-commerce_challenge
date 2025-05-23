@@ -18,11 +18,14 @@ public class ProductRequest {
     @NotNull
     @DecimalMin("0.01")
     private BigDecimal price;
+    
+    @NotNull
+    @DecimalMin("0.00")
+    private BigDecimal costPrice;
+    
 
     @NotNull
     @Min(0)
     private Integer stockQuantity;
 
-    @NotNull
-    private Long categoryId;
 }

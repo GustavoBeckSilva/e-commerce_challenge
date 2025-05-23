@@ -3,8 +3,6 @@ package com.compass.e_commerce_challenge.dto.user;
 import java.time.LocalDateTime;
 import java.util.Set;
 
-import com.compass.e_commerce_challenge.entity.UserRoles;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

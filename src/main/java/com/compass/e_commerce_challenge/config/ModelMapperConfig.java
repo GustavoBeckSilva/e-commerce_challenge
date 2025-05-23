@@ -1,11 +1,9 @@
 package com.compass.e_commerce_challenge.config;
 
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.modelmapper.Conditions;
-import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;
 import org.modelmapper.convention.MatchingStrategies;
@@ -14,20 +12,15 @@ import org.springframework.context.annotation.Configuration;
 
 import com.compass.e_commerce_challenge.dto.cart.CartItemResponse;
 import com.compass.e_commerce_challenge.dto.cart.CartResponse;
-import com.compass.e_commerce_challenge.dto.category.CategoryResponse;
-import com.compass.e_commerce_challenge.dto.category.CategorySummary;
 import com.compass.e_commerce_challenge.dto.order.OrderItemResponse;
 import com.compass.e_commerce_challenge.dto.order.OrderResponse;
-import com.compass.e_commerce_challenge.dto.product.ProductResponse;
 import com.compass.e_commerce_challenge.dto.user.UpdateUserRequest;
 import com.compass.e_commerce_challenge.dto.user.UserResponse;
 import com.compass.e_commerce_challenge.entity.Cart;
 import com.compass.e_commerce_challenge.entity.CartItem;
-import com.compass.e_commerce_challenge.entity.Category;
 import com.compass.e_commerce_challenge.entity.Order;
 import com.compass.e_commerce_challenge.entity.OrderItem;
 import com.compass.e_commerce_challenge.entity.OrderStatus;
-import com.compass.e_commerce_challenge.entity.Product;
 import com.compass.e_commerce_challenge.entity.User;
 import com.compass.e_commerce_challenge.entity.UserRoles;
 
@@ -50,12 +43,10 @@ public class ModelMapperConfig {
 
         mapper.addMappings(userToUserResponseMap());
         mapper.addMappings(updateUserRequestToUserMap());
-        mapper.addMappings(productToProductResponseMap());
         mapper.addMappings(cartItemToCartItemResponseMap());
         mapper.addMappings(cartToCartResponseMap());
         mapper.addMappings(orderItemToOrderItemResponseMap());
         mapper.addMappings(orderToOrderResponseMap());
-        mapper.addMappings(categoryToCategoryResponseMap());
 
         return mapper;
     }
@@ -86,39 +77,12 @@ public class ModelMapperConfig {
         };
     }
 
-    // PRODUCT & CATEGORY ******************************************************************************************
+    // PRODUCT ******************************************************************************************
 
-    private PropertyMap<Product, ProductResponse> productToProductResponseMap() {
-        return new PropertyMap<>() {
-            @Override
-            protected void configure() {
-                using(categorySetToSummaryListConverter())
-                    .map(source.getCategories(), destination.getCategories());
-            }
-        };
-    }
+    
 
-    private Converter<Set<Category>, List<CategorySummary>> categorySetToSummaryListConverter() {
-        return ctx -> {
-            Set<Category> categories = ctx.getSource();
-            if (categories == null) return List.of();
+ 
 
-            return categories.stream()
-                .map(cat -> CategorySummary.builder()
-                                           .id(cat.getId())
-                                           .name(cat.getName())
-                                           .build())
-                .collect(Collectors.toList());
-        };
-    }
-
-    private PropertyMap<Category, CategoryResponse> categoryToCategoryResponseMap() {
-        return new PropertyMap<>() {
-            @Override
-            protected void configure() {
-            }
-        };
-    }
 
     // CART ******************************************************************************************
 
@@ -137,7 +101,6 @@ public class ModelMapperConfig {
         return new PropertyMap<>() {
             @Override
             protected void configure() {
-                // Campos mapeados automaticamente
             }
         };
     }
