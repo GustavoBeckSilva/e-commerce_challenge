@@ -47,6 +47,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Autowired
     private AuthenticationManager authenticationManager;
+    
+    @Autowired
+    private EmailService emailService;
 
     @Autowired
     private JwtUtils jwtUtils;
@@ -130,7 +133,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public ApiResponse<String> forgotPassword(ForgotPasswordRequest request) {
-        User user = userRepository.findByEmail(request.getEmail())
+    	User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new IllegalArgumentException("Email not found"));
 
         tokenRepository.deleteByExpiryDateBefore(LocalDateTime.now());
@@ -143,7 +146,9 @@ public class AuthServiceImpl implements AuthService {
                 .build();
         tokenRepository.save(prt);
 
-        return ApiResponse.success("Password reset token generated", token);
+        emailService.sendPasswordResetEmail(user.getEmail(), token);
+
+        return ApiResponse.success("A password reset link has been sent to your email.");
     }
     
     @Override
