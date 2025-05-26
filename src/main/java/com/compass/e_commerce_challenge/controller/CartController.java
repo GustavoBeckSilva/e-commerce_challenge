@@ -58,7 +58,7 @@ public class CartController {
             email = principal.toString();
         }
         User user = userRepository.findByEmail(email)
-            .orElseThrow(() -> new BadRequestException("Usuário não encontrado."));
+            .orElseThrow(() -> new BadRequestException("User not found."));
         return user.getId();
     }
 }

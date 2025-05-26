@@ -21,7 +21,7 @@ public final class SecurityUtils {
             email = principal.toString();
         }
         User user = userRepo.findByEmail(email)
-            .orElseThrow(() -> new BadRequestException("Usuário não encontrado."));
+            .orElseThrow(() -> new BadRequestException("User not found."));
         return user.getId();
     }
 }

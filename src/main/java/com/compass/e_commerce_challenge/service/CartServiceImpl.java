@@ -34,15 +34,15 @@ public class CartServiceImpl implements CartService {
     @Transactional
     public CartResponse addItem(Long userId, CartItemRequest request) {
         Product product = productRepository.findById(request.getProductId())
-            .orElseThrow(() -> new BadRequestException("Produto não encontrado."));
+            .orElseThrow(() -> new BadRequestException("Product not found."));
         if (!product.getActive() || product.getStockQuantity() < request.getQuantity()) {
-            throw new BadRequestException("Estoque insuficiente ou produto inativo.");
+            throw new BadRequestException("Insufficient stock or inactive product.");
         }
 
         Cart cart = cartRepository.findByUserId(userId)
             .orElseGet(() -> Cart.builder()
                 .user(userRepository.findById(userId)
-                    .orElseThrow(() -> new BadRequestException("Usuário não encontrado.")))
+                    .orElseThrow(() -> new BadRequestException("User not found.")))
                 .build());
 
         Optional<CartItem> existing = cartItemRepository.findByCartIdAndProductId(cart.getId(), product.getId());
@@ -67,14 +67,14 @@ public class CartServiceImpl implements CartService {
     @Transactional
     public CartResponse updateItem(Long userId, Long cartItemId, CartItemRequest request) {
         CartItem item = cartItemRepository.findById(cartItemId)
-            .orElseThrow(() -> new BadRequestException("Item do carrinho não encontrado."));
+            .orElseThrow(() -> new BadRequestException("Cart item not found"));
         if (!item.getCart().getUser().getId().equals(userId)) {
-            throw new BadRequestException("Item não pertence ao usuário.");
+            throw new BadRequestException("Item doesn't belong to user.");
         }
         int delta = request.getQuantity() - item.getQuantity();
         Product product = item.getProduct();
         if (delta > 0 && product.getStockQuantity() < delta) {
-            throw new BadRequestException("Estoque insuficiente.");
+            throw new BadRequestException("Insufficient stock.");
         }
         item.setQuantity(request.getQuantity());
         product.setStockQuantity(product.getStockQuantity() - delta);
@@ -88,9 +88,9 @@ public class CartServiceImpl implements CartService {
     @Transactional
     public CartResponse removeItem(Long userId, Long cartItemId) {
         CartItem item = cartItemRepository.findById(cartItemId)
-            .orElseThrow(() -> new BadRequestException("Item do carrinho não encontrado."));
+            .orElseThrow(() -> new BadRequestException("Cart item not found."));
         if (!item.getCart().getUser().getId().equals(userId)) {
-            throw new BadRequestException("Item não pertence ao usuário.");
+            throw new BadRequestException("Item doesn't belong to user.");
         }
         Product product = item.getProduct();
         product.setStockQuantity(product.getStockQuantity() + item.getQuantity());
@@ -107,14 +107,13 @@ public class CartServiceImpl implements CartService {
     @Transactional(readOnly = true)
     public CartResponse getCart(Long userId) {
         Cart cart = cartRepository.findByUserId(userId)
-            .orElseThrow(() -> new BadRequestException("Carrinho não encontrado."));
+            .orElseThrow(() -> new BadRequestException("Cart not found."));
         return mapToCartResponse(cart);
     }
 
-    // Mapeia e calcula totais manualmente
     private CartResponse mapToCartResponse(Cart cart) {
         CartResponse response = modelMapper.map(cart, CartResponse.class);
-        // Mapear itens e calcular totalPrice
+
         var itemResponses = cart.getItems().stream()
             .map(item -> {
                 CartItemResponse dto = modelMapper.map(item, CartItemResponse.class);
@@ -124,7 +123,7 @@ public class CartServiceImpl implements CartService {
             })
             .collect(Collectors.toList());
         response.setItems(itemResponses);
-        // Somar totalAmount
+
         BigDecimal totalAmount = itemResponses.stream()
             .map(CartItemResponse::getTotalPrice)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
