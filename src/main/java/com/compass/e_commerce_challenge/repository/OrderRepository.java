@@ -19,18 +19,22 @@ public interface OrderRepository extends JpaRepository<Order, Long>{
 	Page<Order> findByStatus(OrderStatus status, Pageable pageable);
     Page<Order> findByCreatedAtBetween(LocalDateTime from, LocalDateTime to, Pageable pageable);
 
-    @Query(value = "SELECT DATE(o.created_at) AS dia, SUM(o.total_amount) AS total " +
-              "FROM tb_order o " +
-              "WHERE o.created_at BETWEEN :start AND :end " +
-              "GROUP BY DATE(o.created_at)", nativeQuery = true
-    )
+    @Query(value = "SELECT DATE_TRUNC('day', o.created_at) AS dia, SUM(o.total_amount) AS total " + // MODIFICADO
+            "FROM tb_order o " +
+            "WHERE o.created_at BETWEEN :start AND :end " +
+            "GROUP BY DATE_TRUNC('day', o.created_at)", nativeQuery = true)
     List<Object[]> sumDailySales(LocalDateTime start, LocalDateTime end);
 
-    @Query(value = "SELECT DATE_TRUNC('week', o.created_at) AS semana, SUM(o.total_amount) AS total " +
-              "FROM tb_order o " +
-              "WHERE o.created_at BETWEEN :start AND :end " +
-              "GROUP BY DATE_TRUNC('week', o.created_at)", nativeQuery = true
-    )
+    @Query(value = """
+            SELECT
+            DATE_TRUNC('day', o.created_at) AS dia,
+            SUM( (oi.unit_price - p.cost_price) * oi.quantity ) AS lucro
+            FROM tb_order o
+            JOIN tb_order_item oi ON oi.order_id = o.id
+            JOIN tb_product p      ON p.id = oi.product_id
+            WHERE o.created_at BETWEEN :start AND :end
+            GROUP BY DATE_TRUNC('day', o.created_at)
+          """, nativeQuery = true)
     List<Object[]> sumWeeklySales(LocalDateTime start, LocalDateTime end);
 
     @Query( value = "SELECT DATE_TRUNC('month', o.created_at) AS mes, SUM(o.total_amount) AS total " +
@@ -41,14 +45,14 @@ public interface OrderRepository extends JpaRepository<Order, Long>{
     List<Object[]> sumMonthlySales(LocalDateTime start, LocalDateTime end);
     
     @Query(value = """
-            SELECT 
-            DATE(o.created_at) AS dia,
+            SELECT
+            DATE_TRUNC('day', o.created_at) AS dia,
             SUM( (oi.unit_price - p.cost_price) * oi.quantity ) AS lucro
             FROM tb_order o
             JOIN tb_order_item oi ON oi.order_id = o.id
             JOIN tb_product p      ON p.id = oi.product_id
             WHERE o.created_at BETWEEN :start AND :end
-            GROUP BY DATE(o.created_at)
+            GROUP BY DATE_TRUNC('day', o.created_at)
           """, nativeQuery = true)
     	List<Object[]> sumDailyProfit(LocalDateTime start, LocalDateTime end);
 
