@@ -45,20 +45,27 @@ public class CartServiceImpl implements CartService {
                     .orElseThrow(() -> new BadRequestException("User not found.")))
                 .build());
 
-        Optional<CartItem> existing = cartItemRepository.findByCartIdAndProductId(cart.getId(), product.getId());
-        CartItem item = existing.orElseGet(() -> {
+        Optional<CartItem> existingItem = cart.getItems().stream()
+                .filter(item -> item.getProduct().getId().equals(request.getProductId()))
+                .findFirst();
+
+        if (existingItem.isPresent()) {
+            CartItem item = existingItem.get();
+            int newQuantity = item.getQuantity() + request.getQuantity();
+
+            if (product.getStockQuantity() < newQuantity) {
+                throw new BadRequestException("Insufficient stock to add more items.");
+            }
+            item.setQuantity(newQuantity);
+        } else {
             CartItem newItem = CartItem.builder()
                 .cart(cart)
                 .product(product)
+                .quantity(request.getQuantity())
                 .build();
             cart.getItems().add(newItem);
-            return newItem;
-        });
-        int newQuantity = item.getQuantity() == null ? request.getQuantity() : item.getQuantity() + request.getQuantity();
-        item.setQuantity(newQuantity);
-        product.setStockQuantity(product.getStockQuantity() - request.getQuantity());
-        productRepository.save(product);
-
+        }
+        
         Cart saved = cartRepository.save(cart);
         return mapToCartResponse(saved);
     }
@@ -66,22 +73,22 @@ public class CartServiceImpl implements CartService {
     @Override
     @Transactional
     public CartResponse updateItem(Long userId, Long cartItemId, CartItemRequest request) {
-        CartItem item = cartItemRepository.findById(cartItemId)
-            .orElseThrow(() -> new BadRequestException("Cart item not found"));
-        if (!item.getCart().getUser().getId().equals(userId)) {
-            throw new BadRequestException("Item doesn't belong to user.");
-        }
-        int delta = request.getQuantity() - item.getQuantity();
-        Product product = item.getProduct();
-        if (delta > 0 && product.getStockQuantity() < delta) {
-            throw new BadRequestException("Insufficient stock.");
-        }
-        item.setQuantity(request.getQuantity());
-        product.setStockQuantity(product.getStockQuantity() - delta);
-        productRepository.save(product);
-        cartItemRepository.save(item);
 
-        return mapToCartResponse(item.getCart());
+    	CartItem item = cartItemRepository.findById(cartItemId).orElseThrow(() -> new BadRequestException("Cart item not found"));
+	    
+    	if (!item.getCart().getUser().getId().equals(userId))
+	        throw new BadRequestException("Item doesn't belong to user.");
+	    	    
+	    Product product = item.getProduct();
+	    
+	    if (product.getStockQuantity() < request.getQuantity()) 
+	        throw new BadRequestException("Insufficient stock.");
+	    	    
+	    item.setQuantity(request.getQuantity());
+	    
+	    cartItemRepository.save(item);
+
+	    return mapToCartResponse(item.getCart());
     }
 
     @Override
@@ -92,13 +99,10 @@ public class CartServiceImpl implements CartService {
         if (!item.getCart().getUser().getId().equals(userId)) {
             throw new BadRequestException("Item doesn't belong to user.");
         }
-        Product product = item.getProduct();
-        product.setStockQuantity(product.getStockQuantity() + item.getQuantity());
-        productRepository.save(product);
 
         Cart cart = item.getCart();
         cart.getItems().remove(item);
-        cartItemRepository.delete(item);
+        cartRepository.save(cart);
 
         return mapToCartResponse(cart);
     }

@@ -22,9 +22,11 @@ import com.compass.e_commerce_challenge.entity.CartItem;
 import com.compass.e_commerce_challenge.entity.Order;
 import com.compass.e_commerce_challenge.entity.OrderItem;
 import com.compass.e_commerce_challenge.entity.OrderStatus;
+import com.compass.e_commerce_challenge.entity.Product;
 import com.compass.e_commerce_challenge.entity.User;
 import com.compass.e_commerce_challenge.repository.CartRepository;
 import com.compass.e_commerce_challenge.repository.OrderRepository;
+import com.compass.e_commerce_challenge.repository.ProductRepository;
 import com.compass.e_commerce_challenge.repository.UserRepository;
 import com.compass.e_commerce_challenge.util.exceptions.BadRequestException;
 import com.compass.e_commerce_challenge.util.security.SecurityUtils;
@@ -34,21 +36,23 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
-    private final CartRepository cartRepository;
+    
+	private final CartRepository cartRepository;
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
-
+    private final ProductRepository productRepository;
+    
     @Override
     @Transactional
     public OrderResponse checkout(CheckoutRequest request) {
         Long userId = SecurityUtils.getCurrentUserId(userRepository);
         Cart cart = cartRepository.findByUserId(userId)
             .orElseThrow(() -> new BadRequestException("Cart not found."));
-        if (cart.getItems().isEmpty()) {
+        
+        if (cart.getItems().isEmpty())
             throw new BadRequestException("Cart empty.");
-        }
-
+        
         User user = cart.getUser();
         Order order = Order.builder()
             .user(user)
@@ -56,14 +60,24 @@ public class OrderServiceImpl implements OrderService {
             .build();
 
         for (CartItem ci : cart.getItems()) {
-            OrderItem oi = OrderItem.builder()
+            
+        	Product product = ci.getProduct();
+        	
+        	if(product.getStockQuantity()  < ci.getQuantity())
+                throw new BadRequestException("Insufficient stock for product: " + product.getName());        	
+        	
+        	product.setStockQuantity(product.getStockQuantity() - ci.getQuantity());
+            productRepository.save(product);
+        	
+        	OrderItem oi = OrderItem.builder()
                 .order(order)
-                .product(ci.getProduct())
+                .product(product)
                 .quantity(ci.getQuantity())
-                .unitPrice(ci.getProduct().getPrice())
+                .unitPrice(product.getPrice())
                 .build();
             order.getItems().add(oi);
         }
+        
         order.setTotalAmount(order.calculateTotalAmount());
         Order saved = orderRepository.save(order);
 
