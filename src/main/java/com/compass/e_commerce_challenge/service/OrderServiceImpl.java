@@ -111,6 +111,41 @@ public class OrderServiceImpl implements OrderService {
             .last(page.isLast())
             .build();
     }
+    
+    @Override
+    @Transactional
+    public OrderResponse updateOrderStatus(Long orderId, OrderStatus newStatus) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new BadRequestException("Order not found with id: " + orderId));
+
+        OrderStatus currentStatus = order.getStatus();
+
+        if (currentStatus == OrderStatus.DELIVERED || currentStatus == OrderStatus.CANCELED)
+            throw new BadRequestException("Order is already completed or canceled and cannot be updated.");
+        
+        
+        if (currentStatus == newStatus)
+            return toResponse(order);
+        
+
+        if (newStatus == OrderStatus.CANCELED)
+            restockProductsForCanceledOrder(order);
+        
+        order.setStatus(newStatus);
+        Order updatedOrder = orderRepository.save(order);
+
+        return toResponse(updatedOrder);
+    }
+
+    private void restockProductsForCanceledOrder(Order order) {
+        for (OrderItem item : order.getItems()) {
+            Product product = item.getProduct();
+            int quantityToRestock = item.getQuantity();
+            
+            product.setStockQuantity(product.getStockQuantity() + quantityToRestock);
+            productRepository.save(product);
+        }
+    }
 
     @Override
     @Transactional(readOnly = true)
