@@ -52,7 +52,7 @@ This API is built using the following technologies and libraries:
 
 The following class diagram illustrates the main entities of the e-commerce system and their relationships:
 
-[E-commerceChallenge drawio](https://github.com/user-attachments/assets/6a07a4f4-b6ea-4371-b05a-2cb843979b42)
+![E-commerceChallenge drawio](https://github.com/user-attachments/assets/11c5c406-32f1-4cc6-97fe-0748fa181007)
 
 This diagram shows the core components like User, Product, Cart, Order, and their associations, providing a visual overview of the data structure.
 
