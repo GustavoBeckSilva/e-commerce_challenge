@@ -12,7 +12,9 @@ import lombok.*;
 @ToString(onlyExplicitlyIncluded = true)
 public class PasswordResetToken {
  
-	// Properties *************************************************************************************
+	/**
+	 * Properties
+	*/
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,13 +31,17 @@ public class PasswordResetToken {
 	@ToString.Include
     private LocalDateTime expiryDate;
 
-	// Associations *************************************************************************************
-
+	/**
+	 * Associations
+	*/
+	
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-	// Auxiliary methods ******************************************************************************** 
+    /**
+	 * Auxiliary methods
+	*/
     
     public boolean isExpired() {
     	return LocalDateTime.now().isAfter(this.expiryDate);

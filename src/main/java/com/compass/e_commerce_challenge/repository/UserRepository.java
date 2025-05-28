@@ -14,11 +14,12 @@ public interface UserRepository extends JpaRepository<User, Long>{
 	
 	Optional<User> findByEmail(String email);
 	Optional<User> findByUsername(String username);
-	Page<User> findByActiveTrue(Pageable pageable);
 	
+	Page<User> findByActiveTrue(Pageable pageable);
+
 	@Query("SELECT u FROM User u JOIN u.orders o GROUP BY u ORDER BY SUM(o.totalAmount) DESC")
 	Page<User> findTopCustomers(Pageable pageable);
-	
+
     boolean existsByEmail(String email);
     boolean existsByUsername(String username);
 	

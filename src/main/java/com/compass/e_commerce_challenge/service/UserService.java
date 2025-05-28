@@ -8,11 +8,17 @@ import com.compass.e_commerce_challenge.dto.user.UserResponse;
 
 public interface UserService {
 
-	// Shared
+	/*
+	 * Shared
+	 */
+	
 	UserResponse getCurrentUser();
     UserResponse updateCurrentUser(UpdateUserRequest dto);
     ApiResponse<?> deleteUser(Long userId);
 
-    // Admin
+    /*
+	 * Admin
+	 */
+    
     PagedResponse<UserResponse> listUsers(PageRequestDto pageRequest);
 }

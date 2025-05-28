@@ -11,7 +11,9 @@ import lombok.*;
 @ToString(onlyExplicitlyIncluded = true)
 public class CartItem {
 
-	// Properties *************************************************************************************
+	/**
+	 * Properties
+	*/
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,7 +27,9 @@ public class CartItem {
     @ToString.Include
     private Integer quantity;
     
-	// Associations *************************************************************************************
+	/**
+	 * Associations
+	*/
 	
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "cart_id", nullable = false)
@@ -34,8 +38,5 @@ public class CartItem {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
-    
-	// Auxiliary methods ********************************************************************************
-
     
 }

@@ -36,8 +36,10 @@ import lombok.ToString;
 @ToString(onlyExplicitlyIncluded = true)
 public class Product {
 	
-	// Properties *************************************************************************************
-
+	/**
+	 * Properties
+	*/
+	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@EqualsAndHashCode.Include
@@ -85,8 +87,10 @@ public class Product {
     @ToString.Include
 	private LocalDateTime updatedAt;
 
-	// Associations *************************************************************************************
-    
+	/**
+	 * Associations
+	*/
+	
 	@OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
 	private List<OrderItem> orderItems = new ArrayList<>();
@@ -95,8 +99,10 @@ public class Product {
     @Builder.Default
 	private List<CartItem> cartItems = new ArrayList<>();
     
-	// Auxiliary methods ********************************************************************************
-
+	/**
+	 * Auxiliary methods
+	*/
+	
 	@PrePersist
     protected void onCreate() {
         LocalDateTime now = LocalDateTime.now();

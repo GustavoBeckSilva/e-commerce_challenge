@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -119,25 +118,27 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public PagedResponse<LowStockProductDTO> getLowStockProducts(PageRequestDto pageRequest) {
-    	PageRequest pg = PageRequest.of(pageRequest.getPage(), pageRequest.getSize());
-
+        PageRequest pg = PageRequest.of(pageRequest.getPage(), pageRequest.getSize());
         Integer threshold = props.getLowStockThreshold();
-        List<Product> content = productRepo.findLowStock(threshold, pg);
-        long total = productRepo.countLowStock(threshold);
-        Page<LowStockProductDTO> page = new PageImpl<>(
-            content.stream().map(p -> {
-                LowStockProductDTO d = new LowStockProductDTO();
-                d.setProductId(p.getId()); d.setProductName(p.getName()); d.setStockQuantity(p.getStockQuantity());
-                return d;
-            }).collect(Collectors.toList()), pg, total);
-        PagedResponse<LowStockProductDTO> resp = new PagedResponse<>();
-        resp.setContent(page.getContent());
-        resp.setPage(page.getNumber());
-        resp.setSize(page.getSize());
-        resp.setTotalElements(page.getTotalElements());
-        resp.setTotalPages(page.getTotalPages());
-        resp.setLast(page.isLast());
-        return resp;
+
+        Page<Product> productPage = productRepo.findLowStock(threshold, pg);
+
+        Page<LowStockProductDTO> dtoPage = productPage.map(p -> {
+            LowStockProductDTO d = new LowStockProductDTO();
+            d.setProductId(p.getId());
+            d.setProductName(p.getName());
+            d.setStockQuantity(p.getStockQuantity());
+            return d;
+        });
+
+        return PagedResponse.<LowStockProductDTO>builder()
+                .content(dtoPage.getContent())
+                .page(dtoPage.getNumber())
+                .size(dtoPage.getSize())
+                .totalElements(dtoPage.getTotalElements())
+                .totalPages(dtoPage.getTotalPages())
+                .last(dtoPage.isLast())
+                .build();
     }
 
     @Override

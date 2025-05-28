@@ -7,11 +7,20 @@ import com.compass.e_commerce_challenge.dto.shared.PageRequestDto;
 import com.compass.e_commerce_challenge.dto.shared.PagedResponse;
 
 public interface ProductService {
-    ProductResponse createProduct(ProductRequest dto);
+    
+	/*
+	 * Admin
+	 */
+	
+	ProductResponse createProduct(ProductRequest dto);
     ProductResponse updateProduct(Long productId, ProductRequest dto);
-    void deactivateProduct(Long productId);
-    ApiResponse<?> deleteProduct(Long productId);
-    PagedResponse<ProductResponse> listActiveProducts(PageRequestDto pageRequest);
     PagedResponse<ProductResponse> listAllProducts(PageRequestDto pageRequest);
+    ApiResponse<?> deleteProduct(Long productId);
+    void deactivateProduct(Long productId);
+    
+    /*
+	 * Shared
+	 */
+    PagedResponse<ProductResponse> listActiveProducts(PageRequestDto pageRequest);
     ProductResponse getProductById(Long productId);
 }

@@ -11,7 +11,9 @@ import com.compass.e_commerce_challenge.entity.PasswordResetToken;
 
 @Repository
 public interface PasswordResetTokenRepository extends JpaRepository<PasswordResetToken, Long>{
+
 	Optional<PasswordResetToken> findByToken(String token);
     List<PasswordResetToken> findByUserId(Long userId);
     void deleteByExpiryDateBefore(LocalDateTime cutoff);
+    
 }

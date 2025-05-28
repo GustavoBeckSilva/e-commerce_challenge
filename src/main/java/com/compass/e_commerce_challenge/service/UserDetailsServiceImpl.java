@@ -14,6 +14,11 @@ import org.springframework.stereotype.Service;
 import com.compass.e_commerce_challenge.entity.User;
 import com.compass.e_commerce_challenge.repository.UserRepository;
 
+/**
+ * This service implements Spring Security's UserDetailsService.
+ * It is responsible for loading user-specific data during the authentication process.
+ */
+
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
 
@@ -33,4 +38,5 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 user.getEmail(), user.getPassword(), user.getActive(),
                 true, true, true, authorities);
     }
+    
 }

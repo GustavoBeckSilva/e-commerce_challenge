@@ -14,7 +14,10 @@ import jakarta.validation.constraints.*;
 @ToString(onlyExplicitlyIncluded = true)
 public class Order {
 
-	// Properties *************************************************************************************
+	/**
+	 * Properties
+	*/
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@EqualsAndHashCode.Include
@@ -34,8 +37,10 @@ public class Order {
 	@ToString.Include
 	private LocalDateTime updatedAt;
 
-	// Associations *************************************************************************************
-    
+	/**
+	 * Associations
+	*/
+	
 	@NotNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -51,7 +56,9 @@ public class Order {
     @Builder.Default
     private List<OrderItem> items = new ArrayList<>();
     
-	// Auxiliary methods ******************************************************************************** 
+    /**
+	 * Auxiliary methods
+	*/
     
     @PrePersist
     protected void onCreate() {

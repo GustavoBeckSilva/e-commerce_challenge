@@ -51,7 +51,9 @@ public class ModelMapperConfig {
         return mapper;
     }
 
-    // USER ******************************************************************************************
+    /*
+     * User
+     */
 
     private PropertyMap<User, UserResponse> userToUserResponseMap() {
         return new PropertyMap<>() {
@@ -77,14 +79,9 @@ public class ModelMapperConfig {
         };
     }
 
-    // PRODUCT ******************************************************************************************
-
-    
-
- 
-
-
-    // CART ******************************************************************************************
+    /*
+     * Cart
+     */
 
     private PropertyMap<CartItem, CartItemResponse> cartItemToCartItemResponseMap() {
         return new PropertyMap<>() {
@@ -105,7 +102,9 @@ public class ModelMapperConfig {
         };
     }
 
-    // ORDER ******************************************************************************************
+    /*
+     * Order
+     */
 
     private PropertyMap<OrderItem, OrderItemResponse> orderItemToOrderItemResponseMap() {
         return new PropertyMap<>() {

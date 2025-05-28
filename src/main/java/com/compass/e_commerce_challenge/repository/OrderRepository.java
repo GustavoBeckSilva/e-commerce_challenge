@@ -54,7 +54,7 @@ public interface OrderRepository extends JpaRepository<Order, Long>{
             WHERE o.created_at BETWEEN :start AND :end
             GROUP BY DATE_TRUNC('day', o.created_at)
           """, nativeQuery = true)
-    	List<Object[]> sumDailyProfit(LocalDateTime start, LocalDateTime end);
+	List<Object[]> sumDailyProfit(LocalDateTime start, LocalDateTime end);
 
     @Query(value = """
             SELECT 
@@ -66,7 +66,7 @@ public interface OrderRepository extends JpaRepository<Order, Long>{
             WHERE o.created_at BETWEEN :start AND :end
             GROUP BY DATE_TRUNC('week', o.created_at)
           """, nativeQuery = true)
-       List<Object[]> sumWeeklyProfit(LocalDateTime start, LocalDateTime end);
+    List<Object[]> sumWeeklyProfit(LocalDateTime start, LocalDateTime end);
             
      @Query(value = """
             SELECT 
@@ -78,6 +78,6 @@ public interface OrderRepository extends JpaRepository<Order, Long>{
             WHERE o.created_at BETWEEN :start AND :end
             GROUP BY DATE_TRUNC('month', o.created_at)
           """, nativeQuery = true)
-       List<Object[]> sumMonthlyProfit(LocalDateTime start, LocalDateTime end);
+     List<Object[]> sumMonthlyProfit(LocalDateTime start, LocalDateTime end);
         
 }

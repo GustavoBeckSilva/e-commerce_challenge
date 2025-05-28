@@ -13,8 +13,10 @@ import lombok.*;
 @ToString(onlyExplicitlyIncluded = true)
 public class User {
 	
-	// Properties *************************************************************************************
-
+	/**
+	 * Properties
+	*/
+	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@EqualsAndHashCode.Include
@@ -50,7 +52,9 @@ public class User {
 	@Column(name = "updated_at", nullable = false)
 	private LocalDateTime updatedAt;
 	
-	// Associations *************************************************************************************
+	/**
+	 * Associations
+	*/
 	
 	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
 	private List<PasswordResetToken> resetTokens;
@@ -71,8 +75,10 @@ public class User {
 
 	@OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private Cart cart;
-
-	// Auxiliary methods ********************************************************************************
+	
+	/**
+	 * Auxiliary methods
+	*/
 	
 	@PrePersist
     protected void onCreate() {

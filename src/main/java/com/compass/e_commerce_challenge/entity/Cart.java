@@ -13,7 +13,9 @@ import lombok.*;
 @ToString(onlyExplicitlyIncluded = true)
 public class Cart {
 	
-	// Properties *************************************************************************************
+	/**
+	 * Properties
+	*/
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,8 +31,10 @@ public class Cart {
 	@ToString.Include
     private LocalDateTime updatedAt;
     
-	// Associations *************************************************************************************
-    
+	/**
+	 * Associations
+	*/
+	
 	@OneToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "user_id", nullable = false)
 	@NotNull
@@ -40,8 +44,10 @@ public class Cart {
     @Builder.Default
 	private List<CartItem> items = new ArrayList<>();
 
-	// Auxiliary methods ******************************************************************************** 
-
+	/**
+	 * Auxiliary methods
+	*/
+	
 	@PrePersist
 	protected void onCreate() {
         LocalDateTime now = LocalDateTime.now();

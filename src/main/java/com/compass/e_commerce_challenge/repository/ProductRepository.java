@@ -1,7 +1,6 @@
 package com.compass.e_commerce_challenge.repository;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,19 +17,16 @@ public interface ProductRepository extends JpaRepository<Product, Long>{
 	Page<Product> findByActiveTrueAndStockQuantityGreaterThan(int minStock, Pageable pageable);
 	Page<Product> findAll(Pageable pageable);
     Page<Product> findByPriceBetween(BigDecimal min, BigDecimal max, Pageable pageable);
+    Page<Product> findByStockQuantityLessThan(int threshold, Pageable pageable);
 
     @Query("SELECT p FROM Product p JOIN p.orderItems oi GROUP BY p ORDER BY SUM(oi.quantity) DESC")
     Page<Product> findTopSellingProducts(Pageable pageable);
 
-    Page<Product> findByStockQuantityLessThan(int threshold, Pageable pageable);
+    @Query("SELECT p FROM Product p WHERE p.stockQuantity < :threshold")
+    Page<Product> findLowStock(@Param("threshold") Integer threshold, Pageable pageable);
     
     boolean existsByOrderItems_Product_Id(Long productId);
     
-    @Query("SELECT p FROM Product p WHERE p.stockQuantity < :threshold")
-    List<Product> findLowStock(@Param("threshold") Integer threshold, Pageable pageable);
-
-    @Query("SELECT COUNT(p) FROM Product p WHERE p.stockQuantity < :threshold")
-    Long countLowStock(@Param("threshold") Integer threshold);
-
+    
 
 }

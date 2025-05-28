@@ -14,8 +14,10 @@ import lombok.*;
 @ToString(onlyExplicitlyIncluded = true)
 public class OrderItem {
 	
-	// Properties *************************************************************************************
-
+	/**
+	 * Properties
+	*/
+	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@EqualsAndHashCode.Include
@@ -34,8 +36,10 @@ public class OrderItem {
 	@ToString.Include
     private BigDecimal unitPrice;
 
-    // Associations *************************************************************************************
-
+	/**
+	 * Associations
+	*/
+	
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
@@ -44,8 +48,10 @@ public class OrderItem {
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
     
-	// Auxiliary methods ********************************************************************************
-
+    /**
+	 * Auxiliary methods
+	*/
+    
     public BigDecimal getSubTotal() {
         return unitPrice.multiply(BigDecimal.valueOf(quantity));
     }
