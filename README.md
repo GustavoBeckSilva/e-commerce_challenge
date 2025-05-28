@@ -8,6 +8,7 @@ A complete RESTful API for an e-commerce platform, built with Spring Boot. This 
 
 - [Tech Stack](#tech-stack)
 - [Core Features](#core-features)
+- [Data Model (Entity Diagram)](#data-model-entity-diagram) 
 - [API Documentation](#api-documentation)
   - [Authentication](#authentication)
   - [Users](#users)
@@ -44,6 +45,19 @@ This API is built using the following technologies and libraries:
 -   **Order Lifecycle:** Full order processing, including checkout, querying, and status updates (`PENDING`, `SHIPPED`, `DELIVERED`, `CANCELED`).
 -   **Advanced Reporting:** Endpoints for administrators to query sales and profit data (grouped by day, week, or month), low-stock products, best-selling products, and top clients.
 -   **Standardization & Validation:** Global exception handling for unified error responses, pagination on all list endpoints, and adherence to the ISO 8601 date format.
+
+---
+
+## Data Model (Entity Diagram)
+
+The following class diagram illustrates the main entities of the e-commerce system and their relationships:
+
+![E-Commerce API Class Diagram](../e-commerce_challenge/E-commerceChallenge.drawio.png)
+
+This diagram shows the core components like User, Product, Cart, Order, and their associations, providing a visual overview of the data structure.
+
+---
+
 
 ## API Documentation
 
