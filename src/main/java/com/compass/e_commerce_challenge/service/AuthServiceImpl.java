@@ -28,6 +28,9 @@ import com.compass.e_commerce_challenge.entity.UserRoles;
 import com.compass.e_commerce_challenge.repository.CartRepository;
 import com.compass.e_commerce_challenge.repository.PasswordResetTokenRepository;
 import com.compass.e_commerce_challenge.repository.UserRepository;
+import com.compass.e_commerce_challenge.util.exceptions.InvalidTokenException;
+import com.compass.e_commerce_challenge.util.exceptions.ResourceNotFoundException;
+import com.compass.e_commerce_challenge.util.exceptions.UserAlreadyExistsException;
 import com.compass.e_commerce_challenge.util.security.JwtUtils;
 
 @Service
@@ -54,15 +57,16 @@ public class AuthServiceImpl implements AuthService {
     @Autowired
     private JwtUtils jwtUtils;
 
+    @Transactional
     @Override
     public ApiResponse<?> registerClient(RegisterRequest request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
-            return ApiResponse.error("Email already registered");
-        }
-        if (userRepository.existsByUsername(request.getUsername())) {
-            return ApiResponse.error("Username already in use");
-        }
-
+        
+    	if (userRepository.existsByEmail(request.getEmail()))
+            throw new UserAlreadyExistsException("Email '" + request.getEmail() + "' already registered.");
+        
+        if (userRepository.existsByUsername(request.getUsername())) 
+            throw new UserAlreadyExistsException("Username '" + request.getUsername() + "' is already in use.");
+        
         User user = User.builder()
                 .username(request.getUsername())
                 .email(request.getEmail())
@@ -85,14 +89,12 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public ApiResponse<?> registerAdmin(RegisterRequest request) {
         
-    	if (userRepository.existsByEmail(request.getEmail())) {
-            return ApiResponse.error("Email already in use");
-        }
+    	if (userRepository.existsByEmail(request.getEmail()))
+            throw new UserAlreadyExistsException("Email '" + request.getEmail() + "' already registered.");
         
-    	if (userRepository.existsByUsername(request.getUsername())) {
-            return ApiResponse.error("Username already in use");
-        }
-    	
+    	if (userRepository.existsByUsername(request.getUsername()))
+            throw new UserAlreadyExistsException("Username '" + request.getUsername() + "' is already in use.");
+        
         User admin = User.builder()
                 .username(request.getUsername())
                 .email(request.getEmail())
@@ -116,7 +118,7 @@ public class AuthServiceImpl implements AuthService {
                     new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
             );
         } catch (BadCredentialsException ex) {
-            throw new BadCredentialsException("Invalid credentials");
+            throw new BadCredentialsException("Invalid credentials. Please check your email and password.");
         }
 
         String token = jwtUtils.generateToken(authentication);
@@ -134,7 +136,7 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public ApiResponse<String> forgotPassword(ForgotPasswordRequest request) {
     	User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException("Email not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", request.getEmail()));
 
         tokenRepository.deleteByExpiryDateBefore(LocalDateTime.now());
         String token = UUID.randomUUID().toString();
@@ -155,11 +157,11 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public ApiResponse<?> resetPassword(ResetPasswordRequest request) {
         PasswordResetToken prt = tokenRepository.findByToken(request.getToken())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid token"));
+                .orElseThrow(() -> new InvalidTokenException("Password reset token invalid or not found."));
         
         if (prt.isExpired()) {
             tokenRepository.delete(prt);
-            return ApiResponse.error("Expired token");
+            throw new InvalidTokenException("Password reset token expired.");
         }
         
         User user = prt.getUser();

@@ -14,11 +14,16 @@ import com.compass.e_commerce_challenge.dto.cart.CartResponse;
 import com.compass.e_commerce_challenge.entity.Cart;
 import com.compass.e_commerce_challenge.entity.CartItem;
 import com.compass.e_commerce_challenge.entity.Product;
-import com.compass.e_commerce_challenge.util.exceptions.BadRequestException;
+import com.compass.e_commerce_challenge.entity.User;
 import com.compass.e_commerce_challenge.repository.CartItemRepository;
 import com.compass.e_commerce_challenge.repository.CartRepository;
 import com.compass.e_commerce_challenge.repository.ProductRepository;
 import com.compass.e_commerce_challenge.repository.UserRepository;
+import com.compass.e_commerce_challenge.util.exceptions.InsufficientStockException;
+import com.compass.e_commerce_challenge.util.exceptions.OperationNotAllowedException;
+import com.compass.e_commerce_challenge.util.exceptions.ProductInactiveException;
+import com.compass.e_commerce_challenge.util.exceptions.ResourceNotFoundException;
+
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -34,16 +39,23 @@ public class CartServiceImpl implements CartService {
     @Transactional
     public CartResponse addItem(Long userId, CartItemRequest request) {
         Product product = productRepository.findById(request.getProductId())
-            .orElseThrow(() -> new BadRequestException("Product not found."));
-        if (!product.getActive() || product.getStockQuantity() < request.getQuantity()) {
-            throw new BadRequestException("Insufficient stock or inactive product.");
+            .orElseThrow(() -> new ResourceNotFoundException("Product", "ID", request.getProductId()));
+        
+        if (!product.getActive()) {
+            throw new ProductInactiveException("Product '" + product.getName() + "' is inactive.");
+        }
+
+        if (product.getStockQuantity() < request.getQuantity()) {
+            throw new InsufficientStockException("Insufficient stock for the product: " + product.getName() + ". Available: " + product.getStockQuantity());
         }
 
         Cart cart = cartRepository.findByUserId(userId)
-            .orElseGet(() -> Cart.builder()
-                .user(userRepository.findById(userId)
-                    .orElseThrow(() -> new BadRequestException("User not found.")))
-                .build());
+                .orElseGet(() -> {
+                    User user = userRepository.findById(userId)
+                        .orElseThrow(() -> new ResourceNotFoundException("User", "ID", userId));
+                    Cart newCart = Cart.builder().user(user).build();
+                    return cartRepository.save(newCart);
+                });
 
         Optional<CartItem> existingItem = cart.getItems().stream()
                 .filter(item -> item.getProduct().getId().equals(request.getProductId()))
@@ -54,9 +66,11 @@ public class CartServiceImpl implements CartService {
             int newQuantity = item.getQuantity() + request.getQuantity();
 
             if (product.getStockQuantity() < newQuantity) {
-                throw new BadRequestException("Insufficient stock to add more items.");
+                throw new InsufficientStockException("Insufficient stock to add more units of the product: " + product.getName() + ". Available: " + product.getStockQuantity());
             }
+            
             item.setQuantity(newQuantity);
+        
         } else {
             CartItem newItem = CartItem.builder()
                 .cart(cart)
@@ -74,15 +88,19 @@ public class CartServiceImpl implements CartService {
     @Transactional
     public CartResponse updateItem(Long userId, Long cartItemId, CartItemRequest request) {
 
-    	CartItem item = cartItemRepository.findById(cartItemId).orElseThrow(() -> new BadRequestException("Cart item not found"));
+    	CartItem item = cartItemRepository.findById(cartItemId).orElseThrow(() -> new ResourceNotFoundException("Cart Item", "ID", cartItemId));
 	    
     	if (!item.getCart().getUser().getId().equals(userId))
-	        throw new BadRequestException("Item doesn't belong to user.");
+            throw new OperationNotAllowedException("This item in the cart does not belong to the current user.");
 	    	    
-	    Product product = item.getProduct();
-	    
-	    if (product.getStockQuantity() < request.getQuantity()) 
-	        throw new BadRequestException("Insufficient stock.");
+    	Product product = item.getProduct();
+        
+    	if (!product.getActive()) {
+            throw new ProductInactiveException("Product '" + product.getName() + "' is inactive.");
+        }
+        if (product.getStockQuantity() < request.getQuantity()) {
+            throw new InsufficientStockException("Insufficient stock for the product: " + product.getName() + ". Available: " + product.getStockQuantity());
+        }
 	    	    
 	    item.setQuantity(request.getQuantity());
 	    
@@ -95,15 +113,16 @@ public class CartServiceImpl implements CartService {
     @Transactional
     public CartResponse removeItem(Long userId, Long cartItemId) {
         CartItem item = cartItemRepository.findById(cartItemId)
-            .orElseThrow(() -> new BadRequestException("Cart item not found."));
+            .orElseThrow(() -> new ResourceNotFoundException("Cart item", "ID", cartItemId));
         if (!item.getCart().getUser().getId().equals(userId)) {
-            throw new BadRequestException("Item doesn't belong to user.");
+        	throw new OperationNotAllowedException("Item doesn't belong to user.");
         }
 
         Cart cart = item.getCart();
         cart.getItems().remove(item);
         cartRepository.save(cart);
-
+        cartItemRepository.delete(item);
+        
         return mapToCartResponse(cart);
     }
 
@@ -111,7 +130,7 @@ public class CartServiceImpl implements CartService {
     @Transactional(readOnly = true)
     public CartResponse getCart(Long userId) {
         Cart cart = cartRepository.findByUserId(userId)
-            .orElseThrow(() -> new BadRequestException("Cart not found."));
+            .orElseThrow(() -> new ResourceNotFoundException("User cart", "User ID", userId));
         return mapToCartResponse(cart);
     }
 

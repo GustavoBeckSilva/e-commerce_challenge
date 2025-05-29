@@ -5,7 +5,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import com.compass.e_commerce_challenge.entity.User;
 import com.compass.e_commerce_challenge.repository.UserRepository;
-import com.compass.e_commerce_challenge.util.exceptions.BadRequestException;
+import com.compass.e_commerce_challenge.util.exceptions.ResourceNotFoundException;
 
 public final class SecurityUtils {
     private SecurityUtils() {}
@@ -21,7 +21,7 @@ public final class SecurityUtils {
             email = principal.toString();
         }
         User user = userRepo.findByEmail(email)
-            .orElseThrow(() -> new BadRequestException("User not found."));
+            .orElseThrow(() -> new ResourceNotFoundException("Authenticated user", "email", email + " (Principal type: " + principal.getClass().getSimpleName() + ")"));
         return user.getId();
     }
 }

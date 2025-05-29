@@ -15,7 +15,9 @@ import com.compass.e_commerce_challenge.dto.shared.PageRequestDto;
 import com.compass.e_commerce_challenge.dto.shared.PagedResponse;
 import com.compass.e_commerce_challenge.entity.Product;
 import com.compass.e_commerce_challenge.repository.ProductRepository;
-import com.compass.e_commerce_challenge.util.exceptions.BadRequestException;
+import com.compass.e_commerce_challenge.util.exceptions.OperationNotAllowedException;
+import com.compass.e_commerce_challenge.util.exceptions.ResourceNotFoundException;
+
 
 @Service
 public class ProductServiceImpl implements ProductService {
@@ -39,17 +41,19 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public ProductResponse updateProduct(Long productId, ProductRequest dto) {
         Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new BadRequestException("Product not found"));
-        modelMapper.map(dto, product);
+            .orElseThrow(() -> new ResourceNotFoundException("Product", "ID", productId));
+        modelMapper.map(dto, product); 
+
         Product updated = productRepository.save(product);
         return modelMapper.map(updated, ProductResponse.class);
+
     }
 
     @Override
     @Transactional
     public void deactivateProduct(Long productId) {
         Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new BadRequestException("Product not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("Product", "ID", productId));
         product.setActive(false);
         productRepository.save(product);
     }
@@ -57,14 +61,21 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public ApiResponse<?> deleteProduct(Long productId) {
-        if (productRepository.existsByOrderItems_Product_Id(productId)) {
-            throw new BadRequestException("Cannot delete product linked to orders");
+
+        if (!productRepository.existsById(productId)) {
+            throw new ResourceNotFoundException("Product", "ID", productId);
         }
+        
+        if (productRepository.existsByOrderItems_Product_Id(productId)) { 
+            throw new OperationNotAllowedException("Cannot delete product with ID " + productId + " as it is linked to one or more orders. Consider deactivating it instead.");
+        }
+        
         productRepository.deleteById(productId);
-        return ApiResponse.success("Product deleted successfully");
+        return ApiResponse.success("Product deleted successfully.");
     }
 
     @Override
+    @Transactional(readOnly = true)
     public PagedResponse<ProductResponse> listActiveProducts(PageRequestDto pageRequest) {
         PageRequest pr = PageRequest.of(
             pageRequest.getPage(), pageRequest.getSize(),
@@ -75,6 +86,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public PagedResponse<ProductResponse> listAllProducts(PageRequestDto pageRequest) {
         PageRequest pr = PageRequest.of(
             pageRequest.getPage(), pageRequest.getSize(),
@@ -85,9 +97,10 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ProductResponse getProductById(Long productId) {
         Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new BadRequestException("Product not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("Product", "ID", productId));
         return modelMapper.map(product, ProductResponse.class);
     }
 
