@@ -7,11 +7,11 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.compass.e_commerce_challenge.dto.shared.ApiResponse;
@@ -40,19 +40,8 @@ public class UserController {
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<PagedResponse<UserResponse>> listUsers(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "ASC") String direction) {
-
-        PageRequestDto pr = new PageRequestDto();
-        pr.setPage(page);
-        pr.setSize(size);
-        pr.setSortBy(sortBy);
-        pr.setDirection(direction);
-
-        return ResponseEntity.ok(userService.listUsers(pr));
+    public ResponseEntity<PagedResponse<UserResponse>> listUsers(@ModelAttribute PageRequestDto pageRequest) {      
+        return ResponseEntity.ok(userService.listUsers(pageRequest));
     }
 
     @DeleteMapping("/{id}")

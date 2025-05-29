@@ -32,9 +32,9 @@ public class ReportController {
 
     @GetMapping("/sales")
     public ResponseEntity<PagedResponse<SalesReportEntryDTO>> sales(
-            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
-            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end,
-            @RequestParam(name = "groupBy", defaultValue = "DAY") ReportGrouping groupBy,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end,
+            @RequestParam(defaultValue = "DAY") ReportGrouping groupBy,
             @ModelAttribute PageRequestDto pageReq) {
         
         PeriodRequest pr = new PeriodRequest();
@@ -51,8 +51,8 @@ public class ReportController {
     }
 
     @GetMapping("/top-products")
-    public PagedResponse<ProductSalesDTO> topProducts(@RequestParam("start") String start,
-                                                     @RequestParam("end") String end,
+    public PagedResponse<ProductSalesDTO> topProducts(@RequestParam String start,
+                                                     @RequestParam String end,
                                                      @ModelAttribute PageRequestDto pageReq) {
         PeriodRequest pr = new PeriodRequest();
         pr.setStart(LocalDateTime.parse(start));
@@ -61,8 +61,8 @@ public class ReportController {
     }
 
     @GetMapping("/top-clients")
-    public PagedResponse<ClientSpendingDTO> topClients(@RequestParam("start") String start,
-                                                      @RequestParam("end") String end,
+    public PagedResponse<ClientSpendingDTO> topClients(@RequestParam String start,
+                                                      @RequestParam String end,
                                                       @ModelAttribute PageRequestDto pageReq) {
         PeriodRequest pr = new PeriodRequest();
         pr.setStart(LocalDateTime.parse(start));
