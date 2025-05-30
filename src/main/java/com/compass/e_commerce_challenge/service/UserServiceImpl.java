@@ -32,7 +32,7 @@ public class UserServiceImpl implements UserService {
 
     private User getAuthenticatedUserEntity() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        return userRepository.findByEmail(email) //
+        return userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Authenticated user", "email", email));
     }
 
@@ -70,7 +70,7 @@ public class UserServiceImpl implements UserService {
                 pageRequest.getSize(),
                 Sort.by(Sort.Direction.fromString(pageRequest.getDirection()), pageRequest.getSortBy())
         );
-        Page<User> page = userRepository.findAll(pr); //
+        Page<User> page = userRepository.findAll(pr); 
         return PagedResponse.<UserResponse>builder()
                 .content(page.map(u -> modelMapper.map(u, UserResponse.class)).getContent())
                 .page(page.getNumber())
