@@ -51,22 +51,28 @@ public class ReportController {
     }
 
     @GetMapping("/top-products")
-    public PagedResponse<ProductSalesDTO> topProducts(@RequestParam String start,
-                                                     @RequestParam String end,
-                                                     @ModelAttribute PageRequestDto pageReq) {
-        PeriodRequest pr = new PeriodRequest();
-        pr.setStart(LocalDateTime.parse(start));
-        pr.setEnd(LocalDateTime.parse(end));
+    public PagedResponse<ProductSalesDTO> topProducts(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start, // Corrigido
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end,   // Corrigido
+            @ModelAttribute PageRequestDto pageReq) {
+        
+    	PeriodRequest pr = new PeriodRequest();
+        pr.setStart(start); 
+        pr.setEnd(end);    
+        
         return reportService.getTopSellingProducts(pr, pageReq);
+    
     }
 
     @GetMapping("/top-clients")
-    public PagedResponse<ClientSpendingDTO> topClients(@RequestParam String start,
-                                                      @RequestParam String end,
-                                                      @ModelAttribute PageRequestDto pageReq) {
+    public PagedResponse<ClientSpendingDTO> topClients(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start, // Corrigido
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end,   // Corrigido
+            @ModelAttribute PageRequestDto pageReq) {
         PeriodRequest pr = new PeriodRequest();
-        pr.setStart(LocalDateTime.parse(start));
-        pr.setEnd(LocalDateTime.parse(end));
+        pr.setStart(start); 
+        pr.setEnd(end);     
         return reportService.getTopClients(pr, pageReq);
     }
+    
 }

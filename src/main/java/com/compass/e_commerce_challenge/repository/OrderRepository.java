@@ -27,13 +27,11 @@ public interface OrderRepository extends JpaRepository<Order, Long>{
 
     @Query(value = """
             SELECT
-            DATE_TRUNC('day', o.created_at) AS dia,
-            SUM( (oi.unit_price - p.cost_price) * oi.quantity ) AS lucro
+            DATE_TRUNC('week', o.created_at) AS semana,
+            SUM(o.total_amount) AS total
             FROM tb_order o
-            JOIN tb_order_item oi ON oi.order_id = o.id
-            JOIN tb_product p      ON p.id = oi.product_id
             WHERE o.created_at BETWEEN :start AND :end
-            GROUP BY DATE_TRUNC('day', o.created_at)
+            GROUP BY DATE_TRUNC('week', o.created_at)
           """, nativeQuery = true)
     List<Object[]> sumWeeklySales(LocalDateTime start, LocalDateTime end);
 
